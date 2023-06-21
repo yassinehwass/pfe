@@ -22,9 +22,9 @@ pipeline {
         
         stage ('Build Angular Project') {
             steps {
-                dir('/URL FRONT END/'){
+                dir('/var/lib/jenkins/workspace/PFE/angular-frontend/'){
                         sh 'npm run build'
-                        sh 'cp URL DIST  /var/lib/jenkins/workspace/PFE/URL INFRA FRONT END'
+                        sh 'cp /var/lib/jenkins/workspace/PFE/angular-frontend/dist/angular-frontend/* /var/lib/jenkins/workspace/PFE/angular-frontend/infra/dist/'
                 }
             }
         }
@@ -67,13 +67,11 @@ pipeline {
         stage('Deploying to Kubernetes Cluster') {
             steps {
                 script {
-                    kubernetesDeploy (configs: 'deploymentservice.yaml', kubeconfigId: 'KubernetesConfigPwd')
+                    kubernetesDeploy (configs: 'database.yaml', kubeconfigId: 'KubernetesConfigPwd')
+                    kubernetesDeploy (configs: 'back.yaml', kubeconfigId: 'KubernetesConfigPwd')
+                    kubernetesDeploy (configs: 'front.yaml', kubeconfigId: 'KubernetesConfigPwd')
                 }
             }
         }
-    }
-
-
-
     }
 }
