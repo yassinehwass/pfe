@@ -1,0 +1,8 @@
+version: "2"
+services:
+  front:
+    container_name: front
+    restart: always 
+    build: .
+    ports:
+      - 8081:80

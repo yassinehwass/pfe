@@ -1,0 +1,8 @@
+version: "2"
+services:
+  back:
+    container_name: back
+    build: .
+    ports:
+      - 8080:8080
+    restart: always

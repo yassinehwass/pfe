@@ -1,0 +1,32 @@
+version: "2"
+services:
+  front:
+    container_name: front
+    restart: always
+    build: ./angular-frontend/infra
+    ports:
+      - 8081:80 # port 8081 pour le front
+    depends_on:
+      - mysql
+
+  back:
+    container_name: springboot
+    build: ./springboot-backend/infra
+    ports:
+      - 8080:8080 # port 8080 pour le back
+    restart: always
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5.7
+    build: ./mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
