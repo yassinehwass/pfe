@@ -1,0 +1,79 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven'
+        nodejs 'nodejs'
+    }
+    stages {
+        stage ('Pull Github Project'){
+            steps{
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/yassinehwass/pfe']])
+            }
+        }
+
+        stage ('Build Maven Project') {
+            steps {
+                dir('/var/lib/jenkins/workspace/PFE/springboot-backend/'){
+                        sh 'mvn clean install'
+                        sh 'cp /var/lib/jenkins/workspace/PFE/springboot-backend/target/springboot-backend-0.0.1-SNAPSHOT.jar /var/lib/jenkins/workspace/PFE/springboot-backend/infra'
+                }
+            }
+        }
+        
+        stage ('Build Angular Project') {
+            steps {
+                dir('/URL FRONT END/'){
+                        sh 'npm run build'
+                        sh 'cp URL DIST  /var/lib/jenkins/workspace/PFE/URL INFRA FRONT END'
+                }
+            }
+        }
+
+        stage ('Build Docker Image') {
+            steps {
+                    sh 'docker compose build'
+            }
+        }
+
+        stage ('Tag Image Before Dockerhub Push') {
+            steps {
+                    sh 'docker tag mysql:5.7 yassinehwass/mysql:5.7'
+                    sh 'docker tag pfe-back:latest yassinehwass/back-izi:latest'
+                    sh 'docker tag pfe-front:latest yassinehwass/front-izit:latest'
+            }
+        }
+
+        stage ('Delete Images') {
+            steps {
+                    sh 'docker rmi mysql:5.7'
+                    sh 'docker rmi pfe-back:latest'
+                    sh 'docker rmi pfe-front:latest'
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script{
+                    withCredentials([string(credentialsId: 'DockerHub-Pwd', variable: 'DockerHubPwd')]) {
+                    sh 'docker login -u yassinehwass -p ${DockerHubPwd}'
+                    }
+                    sh 'docker push yassinehwass/mysql:5.7'
+                    sh 'docker push yassinehwass/back-izi:latest'
+                    sh 'docker push yassinehwass/front-izi:latest'
+                }
+            }
+        }
+        
+        stage('Deploying to Kubernetes Cluster') {
+            steps {
+                script {
+                    kubernetesDeploy (configs: 'deploymentservice.yaml', kubeconfigId: 'KubernetesConfigPwd')
+                }
+            }
+        }
+    }
+
+
+
+    }
+}

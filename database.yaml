@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment # Kubernetes resource kind we are creating
+metadata:
+  name: databasedeployment
+spec:
+  selector:
+    matchLabels:
+      app: database
+  replicas: 1 # Number of replicas that will be created for this deployment
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - name: database
+          image: yassinehwass/mysql-izi:latest # Image that will be used to containers in the cluster
+          imagePullPolicy: Always
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+            - name: MYSQL_DATABASE 
+              value: employee_management_system
+          ports:
+            - containerPort: 3306 # The port that the container is running on in the cluster
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  selector:
+    app: database
+  clusterIP: None  # Replace with your desired static IP address
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
