@@ -5,11 +5,24 @@ pipeline {
         nodejs 'nodejs'
     }
     stages {
+
         stage ('Pull Github Project'){
             steps{
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/yassinehwass/pfe']])
             }
         }
+
+    stage('SonarQube Analysis Back') {
+            steps {
+                dir('/var/lib/jenkins/workspace/PFE/springboot-backend/'){
+                script {
+                        withSonarQubeEnv('SonarQube') {
+                        sh "mvn sonar:sonar"
+                    }
+                }
+            }
+        }
+    }
 
         stage ('Build Maven Project') {
             steps {
